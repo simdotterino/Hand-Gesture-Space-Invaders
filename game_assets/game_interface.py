@@ -1,12 +1,13 @@
-import pygame
-pygame.init()
+import pygame as pg
+pg.init()
 
-screen = pygame.display.set_mode((640, 640))
+screen = pg.display.set_mode((640, 640))
 
 running = True
 while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+    for event in pg.event.get():
+        if event.type == pg.QUIT:
             running = False
 
-pygame.quit()
+pg.quit()
+
