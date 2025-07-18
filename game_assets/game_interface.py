@@ -127,28 +127,6 @@ class Spaceship:
 
     def fire(self): 
         return None 
- 
-
-# class Bullet:
-#     def __init__(self, x, y, speed=7):
-#         self.x = x
-#         self.y = y
-#         self.speed = speed
-#         self.width = 4
-#         self.height = 10
-#         self.rect = pg.Rect(x, y, self.width, self.height)
-#         self.active = True
-
-#     def move(self):
-#         self.y -= self.speed
-#         self.rect.y = self.y
-#         if self.y < 0:
-#             self.active = False
-
-#     def draw(self, screen, colour):
-#         if self.active:
-#             pg.draw.rect(screen, colour, self.rect)
-
 
 
 
