@@ -235,27 +235,17 @@ def main():
                     ship_y = Constants.window_height - 30
                     game_data.spaceship = Spaceship(ship_x, ship_y) # type: ignore
                     game_data.current_state = GameState.PLAYING
-                    draw_game(screen, game_data)
-
-                    game_data.spaceship.draw(screen, Constants.white) # type: ignore
                     if game_data.spaceship:
                         print("spaceship is created!")
-                    else: print("No spaceship created!")
+                    else: 
+                        print("No spaceship created!")
 
-
-
-
-
+        elif game_data.current_state == GameState.PLAYING:
+            draw_game(screen, game_data)
             
-            
-
-            # game_data.spaceship = Spaceship(ship_x, ship_y)
-
-        
-
-            # Add game logic here
-            # game_data.score +=1 #le score increment for testing
-        
+            if game_data.spaceship:
+                game_data.spaceship.draw(screen, Constants.white)
+    
         elif game_data.current_state == GameState.GAME_OVER:
             draw_game_over(screen, font, game_data)
         
