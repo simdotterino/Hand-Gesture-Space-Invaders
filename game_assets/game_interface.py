@@ -59,6 +59,7 @@ class GameData:
         self.lives = Constants.initial_lives
         self.level = Constants.initial_level
         self.running = True
+        self.spaceship = None
     
     def is_game_over(self):
         return self.lives <= 0
@@ -67,6 +68,7 @@ class GameData:
         self.score = Constants.initial_score
         self.lives = Constants.initial_lives
         self.level = Constants.initial_level
+        self.spaceship = None 
 
 
 # button class to create a button object
@@ -95,21 +97,60 @@ class Button:
     def is_clicked(self, mouse_pos):
         return self.rect.collidepoint(mouse_pos)
 
+class Spaceship:
+    def __init__(self, x, y, width= 40, height =40, speed=10):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.speed = speed
+        self.rect = pg.Rect(x, y, width, height)
+
+    def move(self, direction, screen_width):
+        print(f"before moving, x={self.x}, direction={direction}, screen_width={screen_width}")
+        if direction == "left" and self.x >= 0:
+            self.x -= self.speed
+            print(f"moving left, x={self.x},")
+        elif direction == "right" and self.x < screen_width - self.width:
+            self.x += self.speed
+            print(f"moving right spaceship function is called, x={self.x}")
+
+        self.rect.x = self.x
+        print(f"after moving, x={self.x}, y={self.y}")
+
+    def draw(self, screen, colour):
+        print(f"drawing spaceship, x={self.x}, y={self.y}")
+        pg.draw.rect(screen, colour, self.rect)
+
+    def get_center(self):
+        return (self.x + self.width // 2, self.y)
+
+    def fire(self): 
+        return None 
+ 
+
+# class Bullet:
+#     def __init__(self, x, y, speed=7):
+#         self.x = x
+#         self.y = y
+#         self.speed = speed
+#         self.width = 4
+#         self.height = 10
+#         self.rect = pg.Rect(x, y, self.width, self.height)
+#         self.active = True
+
+#     def move(self):
+#         self.y -= self.speed
+#         self.rect.y = self.y
+#         if self.y < 0:
+#             self.active = False
+
+#     def draw(self, screen, colour):
+#         if self.active:
+#             pg.draw.rect(screen, colour, self.rect)
 
 
-# ----------------------------------------------------------------------------
-# Gmae Functions - game logics 
-# ----------------------------------------------------------------------------
 
-
-# handel all pygame events 
-def handle_events(game_data):
-    for event in pg.event.get():
-        if event.type == pg.QUIT:
-            game_data.running = False
-        elif event.type == pg.MOUSEBUTTONDOWN:
-            return event  # Return the click event for button handling
-    return None
 
 # draw the menu screen and return the start button 
 def draw_menu(screen, font, settings):
@@ -150,6 +191,7 @@ def draw_game(screen, game_data):
     # draw level label at the top center of the screen 
     level_label = level_font.render(f"Level: {game_data.level}", True, Constants.white)
     screen.blit(level_label, (Constants.window_width//2 - 50, 10))
+ 
 
 
 # draw the game over screen 
@@ -159,9 +201,26 @@ def draw_game_over(screen, font, game_data):
     text_rect = game_over_text.get_rect(center=(Constants.window_width//2 , Constants.window_height//2))
     screen.blit(game_over_text, text_rect)
 
-# ----------------------------------------------------------------------------
-# Main game loop 
-# ----------------------------------------------------------------------------
+
+
+
+# handel all events such as move, fire, start game, etc 
+def handle_events(game_data):
+    for event in pg.event.get():
+        if event.type == pg.QUIT:
+            game_data.running = False
+        elif event.type == pg.MOUSEBUTTONDOWN:
+            return event 
+        elif event.type == pg.KEYDOWN:
+            if event.key == pg.K_LEFT and game_data.spaceship:
+                game_data.spaceship.move("left", Constants.window_width) # type: ignore
+                print("mmovign left ")
+            elif event.key == pg.K_RIGHT and game_data.spaceship:
+                game_data.spaceship.move("right", Constants.window_width) # type: ignore
+                print("moving right")
+        
+            # rn the click event for button handling
+    return None
 
 # main game loop 
 def main():
@@ -193,11 +252,29 @@ def main():
             if click_event and click_event.type == pg.MOUSEBUTTONDOWN:
                 mouse_pos = pg.mouse.get_pos()
                 if start_button.is_clicked(mouse_pos):
+                    print("Game started!") 
+                    ship_x = (Constants.window_width // 2)
+                    ship_y = Constants.window_height - 30
+                    game_data.spaceship = Spaceship(ship_x, ship_y) # type: ignore
                     game_data.current_state = GameState.PLAYING
-                    print("Game started!")  # Debug message
+                    draw_game(screen, game_data)
+
+                    game_data.spaceship.draw(screen, Constants.white) # type: ignore
+                    if game_data.spaceship:
+                        print("spaceship is created!")
+                    else: print("No spaceship created!")
+
+
+
+
+
+            
+            
+
+            # game_data.spaceship = Spaceship(ship_x, ship_y)
+
         
-        elif game_data.current_state == GameState.PLAYING:
-            draw_game(screen, game_data)
+
             # Add game logic here
             # game_data.score +=1 #le score increment for testing
         
@@ -211,9 +288,7 @@ def main():
     pg.quit()
 
 
-# ============================================================================
-# ENTRY POINT - Standard Python main guard
-# ============================================================================
+
 if __name__ == "__main__":
     main()
 
