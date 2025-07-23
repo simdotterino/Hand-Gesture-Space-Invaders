@@ -357,7 +357,6 @@ def main():
                     game_data.current_state = GameState.GAME_OVER
 
 
-
             
     
         elif game_data.current_state == GameState.GAME_OVER:
