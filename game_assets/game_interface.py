@@ -1,6 +1,6 @@
 import pygame as pg
 from enum import Enum
-
+import random
 
 # constant class to store all the constants for the game 
 class Constants:
@@ -61,9 +61,12 @@ class GameData:
         self.running = True
         self.spaceship = None
         self.bullets = []
+        self.enemies = []
+        self.enemy_spawn_delay = 2000
     
     def is_game_over(self):
-        return self.lives <= 0
+        return self.lives <= 0 
+        # || enemy.y == Constants.height
     
     def reset_game(self):
         self.score = Constants.initial_score
@@ -99,7 +102,7 @@ class Button:
         return self.rect.collidepoint(mouse_pos)
 
 class Spaceship:
-    def __init__(self, x, y, width= 40, height =40, spaceship_speed=10):
+    def __init__(self, x, y, width= 40, height =40, spaceship_speed=40):
         # spacceship horizontal position  
         self.x = x
         # spaceship vertical position 
@@ -111,7 +114,7 @@ class Spaceship:
         # by default, the spaceship speed is 10, but increase or decrease it to make it faster of slower
         self.spaceship_speed = spaceship_speed
         # still need this recteangle for positioning of the spaceship and collision detection 
-        self.bullet_rect = pg.Rect(x, y, width, height)
+        self.spaceship_rect = pg.Rect(x, y, width, height)
         # spaceship image 
         self.spaceship_image = pg.image.load("game_assets/icons/space-invaders.png")
         self.spaceship_image = pg.transform.scale(self.spaceship_image, (self.width, self.height))
@@ -125,7 +128,7 @@ class Spaceship:
             self.x += self.spaceship_speed
             print(f"moving right spaceship function is called, x={self.x}")
 
-        self.bullet_rect.x = self.x
+        self.spaceship_rect.x = self.x
         print(f"after moving, x={self.x}, y={self.y}")
 
     def draw(self, screen):
@@ -136,8 +139,10 @@ class Spaceship:
         return (self.x + self.width // 2, self.y)
 
     def fire(self): 
+        # inital x, y positions of the bullet 
         bullet_x = self.x + self.width // 2 
         bullet_y = self.y
+        print("bullet created")
         return Bullet(bullet_x, bullet_y)
 
 
@@ -155,25 +160,36 @@ class Bullet:
         self.y -= self.bullet_speed
         # update the bullet rect position to match the new y position 
         self.bullet_rect.y = self.y
+        print(f"bullet being fired, y={self.y}")  
 
     def draw(self, screen):
         pg.draw.rect(screen, Constants.white, self.bullet_rect)
 
-# class enemy:
-#     def __init__(self, x, y, width=5, height=10, enemy_speed=0.3):
-#         self.x = x
-#         self.y = y
-#         self.width = width
-#         self.height = height
-#         self.enemy_speed = enemy_speed
-#         self.enemy_rect = pg.Rect(x,y,width,height)
 
-#     def move(self):
-#         self.y += self.enemy_speed
-#         self.enemy_rect.y = self.y
+
+
+class Enemy:
+    def __init__(self, x, y, width=40, height=40, enemy_speed=0.3, spawn_delay=2000):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.enemy_speed = enemy_speed
+        self.enemy_rect = pg.Rect(x,y,width,height)
+        self.enemy_image = pg.image.load("game_assets/icons/enemy.png")
+        self.enemy_image = pg.transform.scale(self.enemy_image, (self.width, self.height))
+        self.spawn_delay = spawn_delay
+   
+    def move(self):
+        self.y += self.enemy_speed
+        self.enemy_rect.y = self.y
     
-#     def draw(self, screen):
-#         pg.draw.
+    def draw(self, screen):
+        print(f"drawing enemy, x={self.x}, y={self.y}")
+        screen.blit(self.enemy_image, (self.x, self.y))
+
+
+
 
 
 # draw the menu screen and return the start button 
@@ -235,7 +251,7 @@ def handle_events(game_data):
             game_data.running = False
         elif event.type == pg.MOUSEBUTTONDOWN:
             return event 
-        elif event.type == pg.KEYDOWN:
+        elif event.type == pg.KEYDOWN and game_data:
             if event.key == pg.K_LEFT and game_data.spaceship:
                 game_data.spaceship.move("left", Constants.window_width) # type: ignore
                 print("mmovign left ")
@@ -243,6 +259,7 @@ def handle_events(game_data):
                 game_data.spaceship.move("right", Constants.window_width) # type: ignore
                 print("moving right")
             elif event.key == pg.K_SPACE and game_data.spaceship:
+                print("firing bullet, space bar is pressed")
                 # create a a new bullet objet 
                 bullet = game_data.spaceship.fire()
                 # added to the bulelt list 
@@ -259,10 +276,14 @@ def main():
     # Create game objects
     settings = GameSettings()
     game_data = GameData()
+
     
     # Initialize display
     screen = pg.display.set_mode((settings.screen_width, settings.screen_height))
     font = pg.font.Font(None, settings.font_size)
+    last_enemy_spawn_time = pg.time.get_ticks()
+    collision_sound = pg.mixer.Sound("game_assets/sound/small-explosion-103931.mp3")
+
     
     # Main game loop
     while game_data.running:
@@ -284,6 +305,7 @@ def main():
                     print("Game started!") 
                     ship_x = (Constants.window_width // 2)
                     ship_y = Constants.window_height - 40
+                    # create a new spaceship object
                     game_data.spaceship = Spaceship(ship_x, ship_y) # type: ignore
                     game_data.current_state = GameState.PLAYING
                     if game_data.spaceship:
@@ -305,6 +327,38 @@ def main():
                 # if the bullet is out of the screen, remove it from the list 
                 if bullet.y < 0:
                     game_data.bullets.remove(bullet)
+            
+            current_time = pg.time.get_ticks()
+            if current_time - last_enemy_spawn_time > game_data.enemy_spawn_delay:
+                # the 40 is the width of the enemy, change it accordingly as the enemy width changes
+                new_enemy = Enemy(random.randint(0, Constants.window_width - 40), 0)
+                game_data.enemies.append(new_enemy)
+                last_enemy_spawn_time = current_time 
+            
+            for bullet in game_data.bullets[:]:
+                for enemy in game_data.enemies[:]:
+                    if bullet.bullet_rect.colliderect(enemy.enemy_rect):
+                        game_data.bullets.remove(bullet)
+                        game_data.enemies.remove(enemy)
+                        game_data.score += 1 
+                        break
+            for enemy in game_data.enemies[:]:
+                if enemy.enemy_rect.colliderect(game_data.spaceship.spaceship_rect):
+                    collision_sound.play()
+                    game_data.lives -= 1
+                    game_data.enemies.remove(enemy)
+                    break
+
+            for enemy in game_data.enemies[:]:
+                enemy.move()
+                enemy.draw(screen)
+
+                if enemy.y + enemy.height >= Constants.window_height:
+                    game_data.current_state = GameState.GAME_OVER
+
+
+
+            
     
         elif game_data.current_state == GameState.GAME_OVER:
             draw_game_over(screen, font, game_data)
