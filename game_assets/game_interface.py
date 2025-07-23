@@ -60,6 +60,7 @@ class GameData:
         self.level = Constants.initial_level
         self.running = True
         self.spaceship = None
+        self.bullets = []
     
     def is_game_over(self):
         return self.lives <= 0
@@ -98,36 +99,81 @@ class Button:
         return self.rect.collidepoint(mouse_pos)
 
 class Spaceship:
-    def __init__(self, x, y, width= 40, height =40, speed=10):
+    def __init__(self, x, y, width= 40, height =40, spaceship_speed=10):
+        # spacceship horizontal position  
         self.x = x
+        # spaceship vertical position 
         self.y = y
+        # spaceship width(affect the width of the spaceship)
         self.width = width
+        # spaceship height(affect the height of the spaceship)
         self.height = height
-        self.speed = speed
-        self.rect = pg.Rect(x, y, width, height)
+        # by default, the spaceship speed is 10, but increase or decrease it to make it faster of slower
+        self.spaceship_speed = spaceship_speed
+        # still need this recteangle for positioning of the spaceship and collision detection 
+        self.bullet_rect = pg.Rect(x, y, width, height)
+        # spaceship image 
+        self.spaceship_image = pg.image.load("game_assets/icons/space-invaders.png")
+        self.spaceship_image = pg.transform.scale(self.spaceship_image, (self.width, self.height))
 
     def move(self, direction, screen_width):
         print(f"before moving, x={self.x}, direction={direction}, screen_width={screen_width}")
-        if direction == "left" and self.x >= 0:
-            self.x -= self.speed
+        if direction == "left" and self.x > 0:
+            self.x -= self.spaceship_speed
             print(f"moving left, x={self.x},")
         elif direction == "right" and self.x < screen_width - self.width:
-            self.x += self.speed
+            self.x += self.spaceship_speed
             print(f"moving right spaceship function is called, x={self.x}")
 
-        self.rect.x = self.x
+        self.bullet_rect.x = self.x
         print(f"after moving, x={self.x}, y={self.y}")
 
-    def draw(self, screen, colour):
+    def draw(self, screen):
         print(f"drawing spaceship, x={self.x}, y={self.y}")
-        pg.draw.rect(screen, colour, self.rect)
+        screen.blit(self.spaceship_image, (self.x, self.y))
 
     def get_center(self):
         return (self.x + self.width // 2, self.y)
 
     def fire(self): 
-        return None 
+        bullet_x = self.x + self.width // 2 
+        bullet_y = self.y
+        return Bullet(bullet_x, bullet_y)
 
+
+class Bullet: 
+    def __init__(self, x, y, width=5, height=10, bullet_speed=1):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.bullet_speed =  bullet_speed
+        self.bullet_rect = pg.Rect(x,y,width,height)
+
+    def being_fired(self):
+        # change the y position of the bullet
+        self.y -= self.bullet_speed
+        # update the bullet rect position to match the new y position 
+        self.bullet_rect.y = self.y
+
+    def draw(self, screen):
+        pg.draw.rect(screen, Constants.white, self.bullet_rect)
+
+# class enemy:
+#     def __init__(self, x, y, width=5, height=10, enemy_speed=0.3):
+#         self.x = x
+#         self.y = y
+#         self.width = width
+#         self.height = height
+#         self.enemy_speed = enemy_speed
+#         self.enemy_rect = pg.Rect(x,y,width,height)
+
+#     def move(self):
+#         self.y += self.enemy_speed
+#         self.enemy_rect.y = self.y
+    
+#     def draw(self, screen):
+#         pg.draw.
 
 
 # draw the menu screen and return the start button 
@@ -196,6 +242,11 @@ def handle_events(game_data):
             elif event.key == pg.K_RIGHT and game_data.spaceship:
                 game_data.spaceship.move("right", Constants.window_width) # type: ignore
                 print("moving right")
+            elif event.key == pg.K_SPACE and game_data.spaceship:
+                # create a a new bullet objet 
+                bullet = game_data.spaceship.fire()
+                # added to the bulelt list 
+                game_data.bullets.append(bullet)
         
             # rn the click event for button handling
     return None
@@ -232,7 +283,7 @@ def main():
                 if start_button.is_clicked(mouse_pos):
                     print("Game started!") 
                     ship_x = (Constants.window_width // 2)
-                    ship_y = Constants.window_height - 30
+                    ship_y = Constants.window_height - 40
                     game_data.spaceship = Spaceship(ship_x, ship_y) # type: ignore
                     game_data.current_state = GameState.PLAYING
                     if game_data.spaceship:
@@ -244,11 +295,19 @@ def main():
             draw_game(screen, game_data)
             
             if game_data.spaceship:
-                game_data.spaceship.draw(screen, Constants.white)
+                game_data.spaceship.draw(screen)
+
+            for bullet in game_data.bullets:
+                # makes the new bullet 
+                bullet.being_fired()
+                # draw the bullet on the screen 
+                bullet.draw(screen)
+                # if the bullet is out of the screen, remove it from the list 
+                if bullet.y < 0:
+                    game_data.bullets.remove(bullet)
     
         elif game_data.current_state == GameState.GAME_OVER:
             draw_game_over(screen, font, game_data)
-        
         # Update display
         pg.display.flip()
     
