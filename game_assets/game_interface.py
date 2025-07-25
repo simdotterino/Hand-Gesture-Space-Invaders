@@ -238,8 +238,12 @@ def draw_game(screen, game_data):
 def draw_game_over(screen, font, game_data):
     screen.fill(Constants.black)
     game_over_text = font.render("Game Over!", True, Constants.white)
-    text_rect = game_over_text.get_rect(center=(Constants.window_width//2 , Constants.window_height//2))
+    text_rect = game_over_text.get_rect(center=(Constants.window_width//2 , Constants.window_height//2 - 30))
     screen.blit(game_over_text, text_rect)
+    # Display the player's score below the game over text
+    score_text = font.render(f"Your Score: {game_data.score}", True, Constants.white)
+    score_rect = score_text.get_rect(center=(Constants.window_width//2, Constants.window_height//2))
+    screen.blit(score_text, score_rect)
 
 
 
@@ -313,28 +317,35 @@ def main():
                     else: 
                         print("No spaceship created!")
 
+        # game logic, firing bullets, enemy spaceship colliiosn, enemy spawn, enemy being killed by the bullet
         elif game_data.current_state == GameState.PLAYING:
             draw_game(screen, game_data)
             
+            # draw the spaceship on the screen 
             if game_data.spaceship:
                 game_data.spaceship.draw(screen)
 
+            # draw the bullets on the screen 
             for bullet in game_data.bullets:
                 # makes the new bullet 
                 bullet.being_fired()
                 # draw the bullet on the screen 
                 bullet.draw(screen)
-                # if the bullet is out of the screen, remove it from the list 
+                # if the bullet is out of the screen, remove it 
                 if bullet.y < 0:
                     game_data.bullets.remove(bullet)
             
+            # enemy spawning 
             current_time = pg.time.get_ticks()
             if current_time - last_enemy_spawn_time > game_data.enemy_spawn_delay:
                 # the 40 is the width of the enemy, change it accordingly as the enemy width changes
                 new_enemy = Enemy(random.randint(0, Constants.window_width - 40), 0)
+                # add the new eneemy to the enemy list 
                 game_data.enemies.append(new_enemy)
+                # update the last_enemy_spawn_time to current time 
                 last_enemy_spawn_time = current_time 
             
+            # enemy-bullet colllision detection, [:] is a list comprehension to iterate over a copy of the list
             for bullet in game_data.bullets[:]:
                 for enemy in game_data.enemies[:]:
                     if bullet.bullet_rect.colliderect(enemy.enemy_rect):
@@ -342,6 +353,8 @@ def main():
                         game_data.enemies.remove(enemy)
                         game_data.score += 1 
                         break
+                    
+            # enemy-spaceship collision detection 
             for enemy in game_data.enemies[:]:
                 if enemy.enemy_rect.colliderect(game_data.spaceship.spaceship_rect):
                     collision_sound.play()
@@ -349,15 +362,15 @@ def main():
                     game_data.enemies.remove(enemy)
                     break
 
+
+            # enemy movement
             for enemy in game_data.enemies[:]:
                 enemy.move()
                 enemy.draw(screen)
-
+                # enemy hits the bottom of the screen? game over 
                 if enemy.y + enemy.height >= Constants.window_height:
                     game_data.current_state = GameState.GAME_OVER
 
-
-            
     
         elif game_data.current_state == GameState.GAME_OVER:
             draw_game_over(screen, font, game_data)
