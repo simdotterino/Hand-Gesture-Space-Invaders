@@ -63,6 +63,10 @@ class GameData:
         self.bullets = []
         self.enemies = []
         self.enemy_spawn_delay = 2000
+        # initilaizd to a number bigger than cooldown so, in the event_handling, current - last_shot_time is greater than bullet_cooldown
+        self.last_shot_time = -4000
+        # bullet delay is 1 seoncs for ow, will be changed later
+        self.bullet_cooldown = 3000
     
     def is_game_over(self):
         return self.lives <= 0 
@@ -263,11 +267,15 @@ def handle_events(game_data):
                 game_data.spaceship.move("right", Constants.window_width) # type: ignore
                 print("moving right")
             elif event.key == pg.K_SPACE and game_data.spaceship:
-                print("firing bullet, space bar is pressed")
-                # create a a new bullet objet 
-                bullet = game_data.spaceship.fire()
-                # added to the bulelt list 
-                game_data.bullets.append(bullet)
+                current_time_for_bullet_charging = pg.time.get_ticks()
+                if current_time_for_bullet_charging - game_data.last_shot_time > game_data.bullet_cooldown:
+                    print("firing bullet, space bar is pressed")
+                    # create a a new bullet objet 
+                    bullet = game_data.spaceship.fire()
+                    # added to the bulelt list 
+                    game_data.bullets.append(bullet)
+                    # upate the last shot time 
+                    game_data.last_shot_time = current_time_for_bullet_charging
         
             # rn the click event for button handling
     return None
@@ -276,10 +284,12 @@ def handle_events(game_data):
 def main():
     # Initialize pygame
     pg.init()
+
     
     # Create game objects
     settings = GameSettings()
     game_data = GameData()
+    # game_data.last_shot_time = -1000
 
     
     # Initialize display
@@ -336,14 +346,14 @@ def main():
                     game_data.bullets.remove(bullet)
             
             # enemy spawning 
-            current_time = pg.time.get_ticks()
-            if current_time - last_enemy_spawn_time > game_data.enemy_spawn_delay:
+            current_time_for_enemy_respawing = pg.time.get_ticks()
+            if current_time_for_enemy_respawing - last_enemy_spawn_time > game_data.enemy_spawn_delay:
                 # the 40 is the width of the enemy, change it accordingly as the enemy width changes
                 new_enemy = Enemy(random.randint(0, Constants.window_width - 40), 0)
                 # add the new eneemy to the enemy list 
                 game_data.enemies.append(new_enemy)
                 # update the last_enemy_spawn_time to current time 
-                last_enemy_spawn_time = current_time 
+                last_enemy_spawn_time = current_time_for_enemy_respawing 
             
             # enemy-bullet colllision detection, [:] is a list comprehension to iterate over a copy of the list
             for bullet in game_data.bullets[:]:
