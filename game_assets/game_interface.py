@@ -238,7 +238,7 @@ def draw_game(screen, game_data):
 def draw_game_over(screen, font, game_data):
     screen.fill(Constants.black)
     game_over_text = font.render("Game Over!", True, Constants.white)
-    text_rect = game_over_text.get_rect(center=(Constants.window_width//2 , Constants.window_height//2 - 30))
+    text_rect = game_over_text.get_rect(center=(Constants.window_width//2 , Constants.window_height//2 - 30 + 20))
     screen.blit(game_over_text, text_rect)
     # Display the player's score below the game over text
     score_text = font.render(f"Your Score: {game_data.score}", True, Constants.white)
