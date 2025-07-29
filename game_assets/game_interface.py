@@ -6,6 +6,7 @@ pg.mixer.init()
 laser_sound = pg.mixer.Sound("game_assets/sound/laser-312360.wav")
 collision_sound = pg.mixer.Sound("game_assets/sound/small-explosion-103931.mp3")
 game_start_sound = pg.mixer.Sound("game_assets/sound/gamestart-272829.mp3")
+game_over_sound = pg.mixer.Sound("game_assets/sound/game-over-38511.mp3")
 
 
 # constant class to store all the constants for the game 
@@ -401,8 +402,9 @@ def main():
                 # enemy hits the bottom of the screen? game over 
                 if enemy.y + enemy.height >= Constants.window_height:
                     game_data.current_state = GameState.GAME_OVER
+                    game_over_sound.play()
 
-    
+
         elif game_data.current_state == GameState.GAME_OVER:
             game_over_menu_button = draw_game_over(screen, font, game_data, settings)
             if click_event and click_event.type == pg.MOUSEBUTTONDOWN:
