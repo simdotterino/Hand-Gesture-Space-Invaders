@@ -7,6 +7,7 @@ laser_sound = pg.mixer.Sound("game_assets/sound/laser-312360.wav")
 collision_sound = pg.mixer.Sound("game_assets/sound/small-explosion-103931.mp3")
 game_start_sound = pg.mixer.Sound("game_assets/sound/gamestart-272829.mp3")
 game_over_sound = pg.mixer.Sound("game_assets/sound/game-over-38511.mp3")
+enemy_being_hit = pg.mixer.Sound("game_assets/sound/arcade-ui-14-229514.mp3")
 
 
 # constant class to store all the constants for the game 
@@ -381,6 +382,7 @@ def main():
             for bullet in game_data.bullets[:]:
                 for enemy in game_data.enemies[:]:
                     if bullet.bullet_rect.colliderect(enemy.enemy_rect):
+                        enemy_being_hit.play()
                         game_data.bullets.remove(bullet)
                         game_data.enemies.remove(enemy)
                         game_data.score += 1 
