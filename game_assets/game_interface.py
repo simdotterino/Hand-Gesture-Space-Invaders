@@ -21,11 +21,7 @@ class Constants:
     button_height = 100
     button_font = 50  # Font sizes for different text elements
     button_font_size = 36
-
-
     game_text_font_size = 28
-
-
     # Colors codes (RGB values)
     white = (255, 255, 255)
     navy = (25, 25, 112)
@@ -34,7 +30,12 @@ class Constants:
     # Game values settings
     initial_lives = 5
     initial_score = 0
-    initial_level = 0
+    initial_level = 1
+
+    initial_enemy_speed = 0.3
+    initial_enemy_spawn_delay = 2000
+    initial_score_for_next_level = 10
+
 
 # Game state enum class to store the game state 
 class GameState(Enum):
@@ -70,11 +71,14 @@ class GameData:
         self.spaceship = None
         self.bullets = []
         self.enemies = []
-        self.enemy_spawn_delay = 2000
+        self.base_enemy_speed = Constants.initial_enemy_speed
+        self.enemy_spawn_delay = Constants.initial_enemy_spawn_delay
+        self.score_for_next_level = Constants.initial_score_for_next_level 
         # initilaizd to a number bigger than cooldown so, in the event_handling, current - last_shot_time is greater than bullet_cooldown
         self.last_shot_time = -4000
         # bullet delay is 1 seoncs for ow, will be changed later
-        self.bullet_cooldown = 3000
+        self.bullet_cooldown = 1000
+
     
     def is_game_over(self):
         return self.lives <= 0 
@@ -85,6 +89,20 @@ class GameData:
         self.lives = Constants.initial_lives
         self.level = Constants.initial_level
         self.spaceship = None 
+        self.enemy_spawn_delay = Constants.initial_enemy_spawn_delay
+        self.base_enemy_speed = Constants.initial_enemy_speed
+        self.last_shot_time = -4000
+        print("Game data reset")
+    
+    def level_up(self):
+        self.level+=1
+        self.base_enemy_speed += 0.2
+        for enemy in self.enemies:
+            enemy.enemy_speed = self.base_enemy_speed
+        self.enemy_spawn_delay = max(1000, self.enemy_spawn_delay - 800)
+        print(f"Level Up! Current Level: {self.level}, Enemy Speed: {self.base_enemy_speed:.2f}, Spawn Delay: {self.enemy_spawn_delay}ms")
+        
+            
 
 
 # button class to create a button object
@@ -183,7 +201,7 @@ class Bullet:
 
 
 class Enemy:
-    def __init__(self, x, y, width=40, height=40, enemy_speed=0.3, spawn_delay=2000):
+    def __init__(self, x, y, width=40, height=40, enemy_speed=Constants.initial_enemy_speed, spawn_delay=Constants.initial_enemy_spawn_delay):
         self.x = x
         self.y = y
         self.width = width
@@ -207,16 +225,16 @@ class Enemy:
 
 
 # draw the menu screen and return the start button 
-def draw_menu(screen, font, settings):
+def draw_menu(screen, font, setting):
     # initialize the screen with black color 
     screen.fill(Constants.black)
     
     # Create and draw start button
     start_button = Button(
-        settings.center_x, 
-        settings.center_y, 
-        settings.button_width, 
-        settings.button_height, 
+        setting.center_x, 
+        setting.center_y, 
+        setting.button_width, 
+        setting.button_height, 
         "Start Game", 
         font
     )
@@ -319,7 +337,6 @@ def main():
     screen = pg.display.set_mode((settings.screen_width, settings.screen_height))
     font = pg.font.Font(None, settings.font_size)
     last_enemy_spawn_time = pg.time.get_ticks()
-
     
     # Main game loop
     while game_data.running:
@@ -357,6 +374,10 @@ def main():
             # draw the spaceship on the screen 
             if game_data.spaceship:
                 game_data.spaceship.draw(screen)
+            
+            if game_data.score >= game_data.score_for_next_level:
+                game_data.level_up()
+                game_data.score_for_next_level += 10 
 
             # draw the bullets on the screen 
             for bullet in game_data.bullets:
