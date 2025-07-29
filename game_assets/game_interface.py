@@ -94,6 +94,7 @@ class GameData:
         self.last_shot_time = -4000
         print("Game data reset")
     
+    # level up, increase eneemy speed and decrease enemy spawn delay(appear faster )
     def level_up(self):
         self.level+=1
         self.base_enemy_speed += 0.2
