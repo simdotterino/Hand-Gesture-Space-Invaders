@@ -1,6 +1,12 @@
 import pygame as pg
 from enum import Enum
 import random
+pg.init()
+pg.mixer.init()
+laser_sound = pg.mixer.Sound("game_assets/sound/laser-312360.wav")
+collision_sound = pg.mixer.Sound("game_assets/sound/small-explosion-103931.mp3")
+game_start_sound = pg.mixer.Sound("game_assets/sound/gamestart-272829.mp3")
+
 
 # constant class to store all the constants for the game 
 class Constants:
@@ -147,11 +153,13 @@ class Spaceship:
         bullet_x = self.x + self.width // 2 
         bullet_y = self.y
         print("bullet created")
+        laser_sound.play()
+
         return Bullet(bullet_x, bullet_y)
 
 
 class Bullet: 
-    def __init__(self, x, y, width=5, height=10, bullet_speed=1):
+    def __init__(self, x, y, width=5, height=10, bullet_speed=10):
         self.x = x
         self.y = y
         self.width = width
@@ -239,15 +247,28 @@ def draw_game(screen, game_data):
 
 
 # draw the game over screen 
-def draw_game_over(screen, font, game_data):
+def draw_game_over(screen, font, game_data, settings):
     screen.fill(Constants.black)
     game_over_text = font.render("Game Over!", True, Constants.white)
-    text_rect = game_over_text.get_rect(center=(Constants.window_width//2 , Constants.window_height//2 - 30 + 20))
+    text_rect = game_over_text.get_rect(center=(Constants.window_width//2 , Constants.window_height//2 - 50))
     screen.blit(game_over_text, text_rect)
     # Display the player's score below the game over text
     score_text = font.render(f"Your Score: {game_data.score}", True, Constants.white)
     score_rect = score_text.get_rect(center=(Constants.window_width//2, Constants.window_height//2))
     screen.blit(score_text, score_rect)
+
+
+    back_to_menu_button = Button(
+        settings.center_x,
+        settings.center_y + 90,  # Position below the score
+        settings.button_width,
+        settings.button_height,
+        "Main Menu", # Changed text here
+        font
+    )
+    back_to_menu_button.draw(screen)
+
+    return back_to_menu_button # Return the button so its clicks can be handled
 
 
 
@@ -296,7 +317,6 @@ def main():
     screen = pg.display.set_mode((settings.screen_width, settings.screen_height))
     font = pg.font.Font(None, settings.font_size)
     last_enemy_spawn_time = pg.time.get_ticks()
-    collision_sound = pg.mixer.Sound("game_assets/sound/small-explosion-103931.mp3")
 
     
     # Main game loop
@@ -326,6 +346,7 @@ def main():
                         print("spaceship is created!")
                     else: 
                         print("No spaceship created!")
+                    game_start_sound.play()
 
         # game logic, firing bullets, enemy spaceship colliiosn, enemy spawn, enemy being killed by the bullet
         elif game_data.current_state == GameState.PLAYING:
@@ -383,7 +404,13 @@ def main():
 
     
         elif game_data.current_state == GameState.GAME_OVER:
-            draw_game_over(screen, font, game_data)
+            game_over_menu_button = draw_game_over(screen, font, game_data, settings)
+            if click_event and click_event.type == pg.MOUSEBUTTONDOWN:
+                mouse_pos = pg.mouse.get_pos()
+                if game_over_menu_button.is_clicked(mouse_pos):
+                    print("going back to main menue")
+                    game_data.reset_game()
+                    game_data.current_state = GameState.MENU
         # Update display
         pg.display.flip()
     
