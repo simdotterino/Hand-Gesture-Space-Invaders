@@ -16,8 +16,6 @@ class GameData:
         self.bullets = []
         self.enemies = []
         self.enemy_spawn_delay = 2000
-        self.last_shot_time = 0
-        self.bulet_cooldown = 5000
     
     def reset_game(self):
         self.score = Constants.initial_score
