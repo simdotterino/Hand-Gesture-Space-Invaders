@@ -3,6 +3,8 @@ from enum import Enum
 import random
 pg.init()
 pg.mixer.init()
+
+# sound effects 
 laser_sound = pg.mixer.Sound("game_assets/sound/laser-312360.wav")
 collision_sound = pg.mixer.Sound("game_assets/sound/small-explosion-103931.mp3")
 game_start_sound = pg.mixer.Sound("game_assets/sound/gamestart-272829.mp3")
@@ -32,12 +34,13 @@ class Constants:
     initial_score = 0
     initial_level = 1
 
+    # will be changed as game difficulty changes 
     initial_enemy_speed = 0.3
     initial_enemy_spawn_delay = 2000
     initial_score_for_next_level = 10
 
 
-# Game state enum class to store the game state 
+# Game state enum class to store the game states
 class GameState(Enum):
     MENU = "menu"
     PLAYING = "playing"
@@ -45,7 +48,6 @@ class GameState(Enum):
 
 
 # Game settings class to store game settings
-
 class GameSettings:
     def __init__(self):
         self.screen_width = Constants.window_width
@@ -69,20 +71,21 @@ class GameData:
         self.level = Constants.initial_level
         self.running = True
         self.spaceship = None
-        self.bullets = []
+        self.bullets = [] 
         self.enemies = []
         self.base_enemy_speed = Constants.initial_enemy_speed
         self.enemy_spawn_delay = Constants.initial_enemy_spawn_delay
         self.score_for_next_level = Constants.initial_score_for_next_level 
         # initilaizd to a number bigger than cooldown so, in the event_handling, current - last_shot_time is greater than bullet_cooldown
         self.last_shot_time = -4000
-        # bullet delay is 1 seoncs for ow, will be changed later
+        # bullet delay is 1 second for now, will be changed later
         self.bullet_cooldown = 1000
+        self.last_enemy_spawn_time = pg.time.get_ticks()
+
 
     
     def is_game_over(self):
         return self.lives <= 0 
-        # || enemy.y == Constants.height
     
     def reset_game(self):
         self.score = Constants.initial_score
@@ -92,15 +95,20 @@ class GameData:
         self.enemy_spawn_delay = Constants.initial_enemy_spawn_delay
         self.base_enemy_speed = Constants.initial_enemy_speed
         self.last_shot_time = -4000
-        print("Game data reset")
+        self.bullets.clear()
+        self.enemies.clear()
+        self.last_enemy_spawn_time = pg.time.get_ticks()
     
     # level up, increase eneemy speed and decrease enemy spawn delay(appear faster )
     def level_up(self):
-        self.level+=1
-        self.base_enemy_speed += 0.2
+        # level increases
+        self.level += 1
+        # enemy moves faster 
+        self.base_enemy_speed += 0.4
         for enemy in self.enemies:
             enemy.enemy_speed = self.base_enemy_speed
-        self.enemy_spawn_delay = max(1000, self.enemy_spawn_delay - 800)
+        # enemy spawns faster 
+        self.enemy_spawn_delay = max(500, self.enemy_spawn_delay - 500)
         print(f"Level Up! Current Level: {self.level}, Enemy Speed: {self.base_enemy_speed:.2f}, Spawn Delay: {self.enemy_spawn_delay}ms")
         
             
@@ -151,19 +159,14 @@ class Spaceship:
         self.spaceship_image = pg.transform.scale(self.spaceship_image, (self.width, self.height))
 
     def move(self, direction, screen_width):
-        print(f"before moving, x={self.x}, direction={direction}, screen_width={screen_width}")
         if direction == "left" and self.x > 0:
             self.x -= self.spaceship_speed
-            print(f"moving left, x={self.x},")
         elif direction == "right" and self.x < screen_width - self.width:
             self.x += self.spaceship_speed
-            print(f"moving right spaceship function is called, x={self.x}")
 
         self.spaceship_rect.x = self.x
-        print(f"after moving, x={self.x}, y={self.y}")
 
     def draw(self, screen):
-        print(f"drawing spaceship, x={self.x}, y={self.y}")
         screen.blit(self.spaceship_image, (self.x, self.y))
 
     def get_center(self):
@@ -173,7 +176,6 @@ class Spaceship:
         # inital x, y positions of the bullet 
         bullet_x = self.x + self.width // 2 
         bullet_y = self.y
-        print("bullet created")
         laser_sound.play()
 
         return Bullet(bullet_x, bullet_y)
@@ -193,7 +195,7 @@ class Bullet:
         self.y -= self.bullet_speed
         # update the bullet rect position to match the new y position 
         self.bullet_rect.y = self.y
-        print(f"bullet being fired, y={self.y}")  
+        # print(f"bullet being fired, y={self.y}")  
 
     def draw(self, screen):
         pg.draw.rect(screen, Constants.white, self.bullet_rect)
@@ -218,7 +220,6 @@ class Enemy:
         self.enemy_rect.y = self.y
     
     def draw(self, screen):
-        print(f"drawing enemy, x={self.x}, y={self.y}")
         screen.blit(self.enemy_image, (self.x, self.y))
 
 
@@ -304,14 +305,14 @@ def handle_events(game_data):
         elif event.type == pg.KEYDOWN and game_data:
             if event.key == pg.K_LEFT and game_data.spaceship:
                 game_data.spaceship.move("left", Constants.window_width) # type: ignore
-                print("mmovign left ")
+                # print("mmovign left ")
             elif event.key == pg.K_RIGHT and game_data.spaceship:
                 game_data.spaceship.move("right", Constants.window_width) # type: ignore
-                print("moving right")
+                # print("moving right")
             elif event.key == pg.K_SPACE and game_data.spaceship:
                 current_time_for_bullet_charging = pg.time.get_ticks()
                 if current_time_for_bullet_charging - game_data.last_shot_time > game_data.bullet_cooldown:
-                    print("firing bullet, space bar is pressed")
+                    # print("firing bullet, space bar is pressed")
                     # create a a new bullet objet 
                     bullet = game_data.spaceship.fire()
                     # added to the bulelt list 
@@ -319,7 +320,6 @@ def handle_events(game_data):
                     # upate the last shot time 
                     game_data.last_shot_time = current_time_for_bullet_charging
         
-            # rn the click event for button handling
     return None
 
 # main game loop 
@@ -331,13 +331,11 @@ def main():
     # Create game objects
     settings = GameSettings()
     game_data = GameData()
-    # game_data.last_shot_time = -1000
 
     
     # Initialize display
     screen = pg.display.set_mode((settings.screen_width, settings.screen_height))
     font = pg.font.Font(None, settings.font_size)
-    last_enemy_spawn_time = pg.time.get_ticks()
     
     # Main game loop
     while game_data.running:
@@ -348,6 +346,7 @@ def main():
         if game_data.is_game_over():
             game_data.current_state = GameState.GAME_OVER
         
+
         # Draw current screen and handle interactions
         if game_data.current_state == GameState.MENU:
             start_button = draw_menu(screen, font, settings)
@@ -356,16 +355,12 @@ def main():
             if click_event and click_event.type == pg.MOUSEBUTTONDOWN:
                 mouse_pos = pg.mouse.get_pos()
                 if start_button.is_clicked(mouse_pos):
-                    print("Game started!") 
+                    # print("Game started!") 
                     ship_x = (Constants.window_width // 2)
                     ship_y = Constants.window_height - 40
                     # create a new spaceship object
                     game_data.spaceship = Spaceship(ship_x, ship_y) # type: ignore
                     game_data.current_state = GameState.PLAYING
-                    if game_data.spaceship:
-                        print("spaceship is created!")
-                    else: 
-                        print("No spaceship created!")
                     game_start_sound.play()
 
         # game logic, firing bullets, enemy spaceship colliiosn, enemy spawn, enemy being killed by the bullet
@@ -376,6 +371,7 @@ def main():
             if game_data.spaceship:
                 game_data.spaceship.draw(screen)
             
+            # game difficulty adjustment happens here 
             if game_data.score >= game_data.score_for_next_level:
                 game_data.level_up()
                 game_data.score_for_next_level += 10 
@@ -392,13 +388,13 @@ def main():
             
             # enemy spawning 
             current_time_for_enemy_respawing = pg.time.get_ticks()
-            if current_time_for_enemy_respawing - last_enemy_spawn_time > game_data.enemy_spawn_delay:
+            if current_time_for_enemy_respawing - game_data.last_enemy_spawn_time > game_data.enemy_spawn_delay:
                 # the 40 is the width of the enemy, change it accordingly as the enemy width changes
                 new_enemy = Enemy(random.randint(0, Constants.window_width - 40), 0)
                 # add the new eneemy to the enemy list 
                 game_data.enemies.append(new_enemy)
                 # update the last_enemy_spawn_time to current time 
-                last_enemy_spawn_time = current_time_for_enemy_respawing 
+                game_data.last_enemy_spawn_time = current_time_for_enemy_respawing 
             
             # enemy-bullet colllision detection, [:] is a list comprehension to iterate over a copy of the list
             for bullet in game_data.bullets[:]:
@@ -434,9 +430,9 @@ def main():
             if click_event and click_event.type == pg.MOUSEBUTTONDOWN:
                 mouse_pos = pg.mouse.get_pos()
                 if game_over_menu_button.is_clicked(mouse_pos):
-                    print("going back to main menue")
                     game_data.reset_game()
                     game_data.current_state = GameState.MENU
+                    
         # Update display
         pg.display.flip()
     
