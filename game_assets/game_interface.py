@@ -104,11 +104,12 @@ class GameData:
         # level increases
         self.level += 1
         # enemy moves faster 
-        self.base_enemy_speed += 0.4
+        self.base_enemy_speed += 0.1
+        # change the speed of enemy already displayed on the screen, if we want to change the speed of newly created enemy only, just delete the for loop 
         for enemy in self.enemies:
             enemy.enemy_speed = self.base_enemy_speed
         # enemy spawns faster 
-        self.enemy_spawn_delay = max(500, self.enemy_spawn_delay - 500)
+        self.enemy_spawn_delay = max(1000, self.enemy_spawn_delay - 300)
         print(f"Level Up! Current Level: {self.level}, Enemy Speed: {self.base_enemy_speed:.2f}, Spawn Delay: {self.enemy_spawn_delay}ms")
         
             
@@ -221,8 +222,6 @@ class Enemy:
     
     def draw(self, screen):
         screen.blit(self.enemy_image, (self.x, self.y))
-
-
 
 
 
@@ -390,7 +389,8 @@ def main():
             current_time_for_enemy_respawing = pg.time.get_ticks()
             if current_time_for_enemy_respawing - game_data.last_enemy_spawn_time > game_data.enemy_spawn_delay:
                 # the 40 is the width of the enemy, change it accordingly as the enemy width changes
-                new_enemy = Enemy(random.randint(0, Constants.window_width - 40), 0)
+                new_enemy = Enemy(random.randint(0, Constants.window_width - 40), 0, enemy_speed=game_data.base_enemy_speed)
+                # print(f"new_enemy created, speed:{new_enemy.enemy_speed}, {game_data.last_enemy_spawn_time}")
                 # add the new eneemy to the enemy list 
                 game_data.enemies.append(new_enemy)
                 # update the last_enemy_spawn_time to current time 
@@ -419,6 +419,7 @@ def main():
             for enemy in game_data.enemies[:]:
                 enemy.move()
                 enemy.draw(screen)
+                # print(f"new_enemy drawn, speed:{new_enemy.enemy_speed}, {game_data.last_enemy_spawn_time}")
                 # enemy hits the bottom of the screen? game over 
                 if enemy.y + enemy.height >= Constants.window_height:
                     game_data.current_state = GameState.GAME_OVER
