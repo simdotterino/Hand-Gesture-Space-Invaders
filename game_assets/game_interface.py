@@ -109,7 +109,7 @@ class GameData:
         for enemy in self.enemies:
             enemy.enemy_speed = self.base_enemy_speed
         # enemy spawns faster 
-        self.enemy_spawn_delay = max(1000, self.enemy_spawn_delay - 300)
+        self.enemy_spawn_delay = max(300, self.enemy_spawn_delay - 300)
         print(f"Level Up! Current Level: {self.level}, Enemy Speed: {self.base_enemy_speed:.2f}, Spawn Delay: {self.enemy_spawn_delay}ms")
         
             
