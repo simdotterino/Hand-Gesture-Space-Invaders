@@ -8,8 +8,7 @@ from constants import *
 from draw import *
 from game_settings import GameSettings
 from game_data import GameData
-from events import handle_events
-from spaceship import Spaceship
+from events import *
 from enemy import Enemy
 
 # main game loop 
@@ -27,33 +26,17 @@ def main():
     
     # Main game loop
     while game_data.running:
-        # Handle events
-        click_event = handle_events(game_data)
-        
-        # Update game state
-        if game_data.is_game_over():
-            game_data.current_state = GameState.GAME_OVER
-        
-
-        # Draw current screen and handle interactions
-        if game_data.current_state == GameState.MENU:
+         # Menu
+        if (game_data.current_state == GameState.MENU):
             start_button = draw_menu(screen, font, settings)
-            
-            # Handle button clicks
-            if click_event and click_event.type == pg.MOUSEBUTTONDOWN:
-                mouse_pos = pg.mouse.get_pos()
-                if start_button.is_clicked(mouse_pos):
-                    # print("Game started!") 
-                    ship_x = (Constants.window_width // 2)
-                    ship_y = Constants.window_height - 40
-                    # create a new spaceship object
-                    game_data.spaceship = Spaceship(ship_x, ship_y) # type: ignore
-                    game_data.current_state = GameState.PLAYING
-                    SoundEffects.game_start_sound.play()
+            for event in pg.event.get():
+                handle_menu_events(game_data, event, start_button)
 
         # game logic, firing bullets, enemy spaceship colliiosn, enemy spawn, enemy being killed by the bullet
         elif game_data.current_state == GameState.PLAYING:
             draw_game(screen, game_data)
+            for event in pg.event.get():
+                handle_game_events(game_data, event)
             
             # draw the spaceship on the screen 
             if game_data.spaceship:
@@ -117,18 +100,14 @@ def main():
 
         elif game_data.current_state == GameState.GAME_OVER:
             game_over_menu_button = draw_game_over(screen, font, game_data, settings)
-            if click_event and click_event.type == pg.MOUSEBUTTONDOWN:
-                mouse_pos = pg.mouse.get_pos()
-                if game_over_menu_button.is_clicked(mouse_pos):
-                    game_data.reset_game()
-                    game_data.current_state = GameState.MENU
+            for event in pg.event.get():
+                handle_game_over_events(game_data, event, game_over_menu_button)
                     
         # Update display
         pg.display.flip()
     
     # end the game 
     pg.quit()
-
 
 
 if __name__ == "__main__":
