@@ -43,14 +43,14 @@ for train_index, test_index in kfold.split(X):
 
 print("GUN: ")
 
-print("Precisions: ", precisions)
+#print("Precisions: ", precisions)
 print ("Avg Precision: ", np.mean(precisions))
 
-print("Recalls: ", recalls)
-print ("Avg Precison: ", np.mean(recalls))
+#print("Recalls: ", recalls)
+print ("\nAvg Recalls: ", np.mean(recalls))
 
-print("Specificities: ", specificities)
-print ("Avg Specificity: ", np.mean(specificities), "\n")
+#print("Specificities: ", specificities)
+print ("\nAvg Specificity: ", np.mean(specificities), "\n")
 
 accuracies = []
 precisions = []
@@ -89,14 +89,14 @@ for train_index, test_index in kfold.split(X):
 
 print("FIST: ")
 
-print("Precisions: ", precisions)
+#print("Precisions: ", precisions)
 print ("Avg Precision: ", np.mean(precisions))
 
-print("Recalls: ", recalls)
-print ("Avg Precison: ", np.mean(recalls))
+#print("Recalls: ", recalls)
+print ("\nAvg Recalls: ", np.mean(recalls))
 
-print("Specificities: ", specificities)
-print ("Avg Specificity: ", np.mean(specificities), "\n")
+#print("Specificities: ", specificities)
+print ("\nAvg Specificity: ", np.mean(specificities), "\n")
 
-print("Accuracies: ", accuracies)
-print ("Avg Accuracy: ", np.mean(accuracies))
+#print("Accuracies: ", accuracies)
+print ("Overall Avg Accuracy: ", np.mean(accuracies))
