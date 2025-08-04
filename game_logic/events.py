@@ -3,25 +3,15 @@ from constants import Constants, GameState, SoundEffects
 from spaceship import Spaceship
 
 #handle active events such as move, fire, start game, etc 
-def handle_game_events(game_data, event):
-    if event.type == pg.QUIT:
-        game_data.running = False
-    elif event.type == pg.KEYDOWN and game_data:
-        if event.key == pg.K_LEFT and game_data.spaceship:
-            game_data.spaceship.move("left", Constants.window_width) # type: ignore
-            #print("moving left")
-        elif event.key == pg.K_RIGHT and game_data.spaceship:
-            game_data.spaceship.move("right", Constants.window_width) # type: ignore
-            #print("moving right")
-        elif event.key == pg.K_SPACE and game_data.spaceship:
-            current_time_for_bullet_charging = pg.time.get_ticks()
-            if current_time_for_bullet_charging - game_data.last_shot_time > game_data.bullet_cooldown:
-                #print("firing bullet, space bar is pressed")
-                # create a a new bullet objet 
-                bullet = game_data.spaceship.fire()
-                # added to the bullet list 
-                game_data.bullets.append(bullet)
-                game_data.last_shot_time = current_time_for_bullet_charging
+def handle_game_events(game_data, gesture):
+    if gesture is None:
+        return
+    if gesture == "gun" and game_data.spaceship:
+        current_time_for_bullet_charging = pg.time.get_ticks()
+        if current_time_for_bullet_charging - game_data.last_shot_time > game_data.bullet_cooldown:
+            bullet = game_data.spaceship.fire()
+            game_data.bullets.append(bullet)
+            game_data.last_shot_time = current_time_for_bullet_charging
             
 #handle menu events
 def handle_menu_events(game_data, event, button):
