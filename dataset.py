@@ -3,11 +3,9 @@ import mediapipe as mp
 import csv
 import os
 
-
-
-mp_hands = mp.python.solutions.hands
+mp_hands = mp.solutions.hands
 hands = mp_hands.Hands()
-mp_draw = mp.python.solutions.drawing_utils
+mp_draw = mp.solutions.drawing_utils
 
 #create the file that will hold the dataset if it doesn't exist yet
 csv_file = 'dataset.csv'
