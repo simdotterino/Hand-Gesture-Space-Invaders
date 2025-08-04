@@ -23,7 +23,7 @@ class Constants:
     initial_level = 1
 
     # will be changed as game difficulty changes 
-    initial_enemy_speed = 0.3
+    initial_enemy_speed = 2
     initial_enemy_spawn_delay = 2000
     initial_score_for_next_level = 10
     
