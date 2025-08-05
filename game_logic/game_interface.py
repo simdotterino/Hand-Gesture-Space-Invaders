@@ -58,7 +58,6 @@ def main():
 
         # game logic, firing bullets, enemy spaceship collision, enemy spawn, enemy being killed by the bullet
         elif game_data.current_state == GameState.PLAYING:
-
             ret, frame = capture.read()
             if ret:
                 flipped = cv2.flip(frame, 1)
@@ -87,11 +86,10 @@ def main():
                         knuckles = [landmarks.landmark[i].x for i in [5, 9, 13, 17]]
                         avg_x = np.mean(knuckles)
                         game_data.spaceship.x = int(avg_x * Constants.window_width)
-
+                        game_data.spaceship.move(game_data.spaceship.x)
+                        
                         # trigger events (e.g., fire gun)
                         handle_game_events(game_data, smoothed)
-                    else:
-                        handle_game_events(game_data, None)
 
 
             draw_game(screen, game_data)

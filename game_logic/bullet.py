@@ -15,7 +15,6 @@ class Bullet:
         self.y -= self.bullet_speed
         # update the bullet rect position to match the new y position 
         self.bullet_rect.y = self.y
-        # print(f"bullet being fired, y={self.y}")  
 
     def draw(self, screen):
         pg.draw.rect(screen, Constants.white, self.bullet_rect)

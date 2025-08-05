@@ -16,17 +16,11 @@ class Spaceship:
         self.spaceship_speed = spaceship_speed
         # still need this recteangle for positioning of the spaceship and collision detection 
         self.spaceship_rect = pg.Rect(x, y, width, height)
-        # spaceship image 
         self.spaceship_image = pg.image.load("game_assets/icons/space-invaders.png")
         self.spaceship_image = pg.transform.scale(self.spaceship_image, (self.width, self.height))
 
-    def move(self, direction, screen_width):
-        if direction == "left" and self.x > 0:
-            self.x -= self.spaceship_speed
-        elif direction == "right" and self.x < screen_width - self.width:
-            self.x += self.spaceship_speed
-
-        self.spaceship_rect.x = self.x
+    def move(self, new_x):
+        self.spaceship_rect.x = new_x
 
     def draw(self, screen):
         screen.blit(self.spaceship_image, (self.x, self.y))
