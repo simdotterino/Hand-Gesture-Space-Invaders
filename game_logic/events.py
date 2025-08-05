@@ -4,7 +4,9 @@ from spaceship import Spaceship
 
 #handle active events such as move, fire, start game, etc 
 def handle_game_events(game_data, gesture):
-    if gesture == "gun" and game_data.spaceship:
+    if gesture == "fist":
+        game_data.last_shot_time = -4000  # reset last shot time to allow immediate firing
+    elif gesture == "gun" and game_data.spaceship:
         current_time_for_bullet_charging = pg.time.get_ticks()
         if current_time_for_bullet_charging - game_data.last_shot_time > game_data.bullet_cooldown:
             bullet = game_data.spaceship.fire()
