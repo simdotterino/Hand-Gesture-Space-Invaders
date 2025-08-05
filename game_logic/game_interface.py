@@ -85,8 +85,14 @@ def main():
                         # move spaceship via real life hand movement
                         knuckles = [landmarks.landmark[i].x for i in [5, 9, 13, 17]]
                         avg_x = np.mean(knuckles)
-                        game_data.spaceship.x = int(avg_x * Constants.window_width)
-                        game_data.spaceship.move(game_data.spaceship.x)
+                        new_player_x = int(avg_x * Constants.window_width)
+                        if new_player_x < 0:
+                            new_player_x = 0
+                        elif new_player_x > Constants.window_width - game_data.spaceship.width:
+                            new_player_x = Constants.window_width - game_data.spaceship.width
+                        
+                        game_data.spaceship.x = new_player_x
+                        game_data.spaceship.move(new_player_x)
                         
                         # trigger events (e.g., fire gun)
                         handle_game_events(game_data, smoothed)
@@ -121,8 +127,6 @@ def main():
             if current_time_for_enemy_respawing - game_data.last_enemy_spawn_time > game_data.enemy_spawn_delay:
                 # the 40 is the width of the enemy, change it accordingly as the enemy width changes
                 new_enemy = Enemy(random.randint(40, Constants.window_width - 80), 0, enemy_speed=game_data.base_enemy_speed)
-                # print(f"new_enemy created, speed:{new_enemy.enemy_speed}, {game_data.last_enemy_spawn_time}")
-                # add the new eneemy to the enemy list 
                 game_data.enemies.append(new_enemy)
                 # update the last_enemy_spawn_time to current time 
                 game_data.last_enemy_spawn_time = current_time_for_enemy_respawing 
@@ -144,13 +148,14 @@ def main():
                     game_data.lives -= 1
                     game_data.enemies.remove(enemy)
                     break
-
+                if game_data.lives <= 0:
+                    game_data.current_state = GameState.GAME_OVER
+                    SoundEffects.game_over_sound.play()
 
             # enemy movement
             for enemy in game_data.enemies[:]:
                 enemy.move()
                 enemy.draw(screen)
-                # print(f"new_enemy drawn, speed:{new_enemy.enemy_speed}, {game_data.last_enemy_spawn_time}")
                 # enemy hits the bottom of the screen? game over 
                 if enemy.y + enemy.height >= Constants.window_height:
                     game_data.current_state = GameState.GAME_OVER
