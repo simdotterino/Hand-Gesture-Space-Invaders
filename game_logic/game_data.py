@@ -19,7 +19,7 @@ class GameData:
         # initilaizd to a number bigger than cooldown so, in the event_handling, current - last_shot_time is greater than bullet_cooldown
         self.last_shot_time = -4000
         # bullet delay is 1 second for now, will be changed later
-        self.bullet_cooldown = 1000
+        self.bullet_cooldown = 3000
         self.last_enemy_spawn_time = pg.time.get_ticks()
         
     def is_game_over(self):
