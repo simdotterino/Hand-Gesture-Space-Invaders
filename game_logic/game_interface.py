@@ -122,7 +122,7 @@ def main():
             current_time_for_enemy_respawing = pg.time.get_ticks()
             if current_time_for_enemy_respawing - game_data.last_enemy_spawn_time > game_data.enemy_spawn_delay:
                 # the 40 is the width of the enemy, change it accordingly as the enemy width changes
-                new_enemy = Enemy(random.randint(0, Constants.window_width - 40), 0, enemy_speed=game_data.base_enemy_speed)
+                new_enemy = Enemy(random.randint(40, Constants.window_width - 80), 0, enemy_speed=game_data.base_enemy_speed)
                 # print(f"new_enemy created, speed:{new_enemy.enemy_speed}, {game_data.last_enemy_spawn_time}")
                 # add the new eneemy to the enemy list 
                 game_data.enemies.append(new_enemy)
